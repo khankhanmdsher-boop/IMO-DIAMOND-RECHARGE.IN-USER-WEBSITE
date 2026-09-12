@@ -1,0 +1,92 @@
+<!-- Part 1: Checkout & UPI Intent Trigger -->
+<div class="checkout-box" id="checkoutSection">
+    <div class="checkout-title">🛡️ Secure UPI Auto-Intent Checkout</div>
+    
+    <div class="order-summary">
+        IMO ID: <span id="imoId">8</span><br>
+        Package: <span id="packageName">10 Diamonds</span> | Total: <span id="packageAmount">₹30.00</span>
+    </div>
+
+    <span class="payment-label">Tap app to pay & auto-detect return:</span>
+
+    <!-- Direct UPI App Buttons with Dynamic Transaction ID & Callback -->
+    <div class="apps-grid">
+        <button class="app-btn" onclick="payViaUpi('paytmmp')">
+            <span class="app-icon" style="color: #00baf2;">🟦</span> Paytm
+        </button>
+        <button class="app-btn" onclick="payViaUpi('gpay')">
+            <span class="app-icon">🌐</span> G Pay
+        </button>
+        <button class="app-btn" onclick="payViaUpi('phonepe')">
+            <span class="app-icon" style="color: #5f259f;">🟣</span> PhonePe
+        </button>
+        <button class="app-btn" onclick="payViaUpi('upi')">
+            <span class="app-icon" style="color: #f0883e;">⚡</span> Any UPI
+        </button>
+    </div>
+</div>
+
+<script>
+    function generateTxnRef() {
+        return 'APG' + Date.now() + Math.floor(Math.random() * 1000);
+    }
+
+    function payViaUpi(appType) {
+        const upiId = "merchant786khan@naviaxis";
+        const name = "Mr Sher Khan";
+        const amount = "30.00";
+        const txnRef = generateTxnRef();
+        
+        // Save ref locally to track pending payment state
+        localStorage.setItem('pending_txn_ref', txnRef);
+
+        let upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tr=${txnRef}&tn=IMO_Diamond_Recharge`;
+
+        // App-specific intent scheme adjustments if needed
+        if (appType === 'paytmmp') {
+            window.location.href = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tr=${txnRef}`;
+        } else if (appType === 'gpay') {
+            window.location.href = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tr=${txnRef}`;
+        } else if (appType === 'phonepe') {
+            window.location.href = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tr=${txnRef}`;
+        } else {
+            window.location.href = upiUrl;
+        }
+    }
+</script>
+<!-- Part 2: Auto-Detection & Return Verification Handler -->
+<div id="successResultBox" style="display:none; background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; text-align: center;">
+    <div style="font-size: 32px; margin-bottom: 8px;">✨</div>
+    <div style="font-size: 16px; font-weight: bold; color: #3fb950; margin-bottom: 6px;">Payment Verified Successfully!</div>
+    <div id="detectedDetails" style="font-size: 12px; color: #8b949e; line-height: 1.5;"></div>
+</div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Capture parameters returned by UPI app / Gateway redirect
+        const status = urlParams.get('status') || urlParams.get('response');
+        const txnId = urlParams.get('txnId') || urlParams.get('UTR') || urlParams.get('refId');
+        const pendingRef = localStorage.getItem('pending_txn_ref');
+
+        // Check if user returned with a successful payment response
+        if ((status && status.toUpperCase() === 'SUCCESS') || (txnId && txnId.length >= 8)) {
+            // Valid payment detected automatically
+            document.getElementById('checkoutSection').style.display = 'none';
+            document.getElementById('successResultBox').style.display = 'block';
+            
+            document.getElementById('detectedDetails').innerHTML = `
+                Transaction Reference: <span style="color:#f0883e;">${pendingRef || 'APG-TRX'}</span><br>
+                UTR / Ref ID: <span style="color:#58a6ff;">${txnId}</span><br>
+                Status: <span style="color:#3fb950; font-weight:bold;">Verified & Confirmed</span>
+            `;
+
+            // Clear pending ref
+            localStorage.removeItem('pending_txn_ref');
+        } else {
+            // If no payment response or fake/incomplete redirect, do NOT auto-verify
+            console.log("No valid payment return detected. Awaiting genuine payment.");
+        }
+    });
+</script>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Admin Dashboard - APG Team SaaS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #0d1117; color: #c9d1d9; padding: 12px; }
+        
+        .dashboard-container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+        /* Navbar */
+        .navbar { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-title { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 14px; color: #fff; }
+        .nav-title span.logo { color: #2ea043; font-size: 16px; }
+        .badge-full { background: #238636; color: #fff; font-size: 9px; padding: 3px 6px; border-radius: 10px; font-weight: bold; }
+        .logout-btn { background: #da3633; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .logout-btn:hover { background: #f85149; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 12px; text-align: center; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 4px; }
+        .stat-label { font-size: 11px; color: #8b949e; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+        /* Section Box */
+        .section-box { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 12px; }
+        .section-header { font-size: 13px; font-weight: bold; color: #f0883e; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        
+        /* Stock Display */
+        .stock-display { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .stock-info .stock-num { font-size: 15px; font-weight: bold; color: #58a6ff; word-break: break-all; }
+        .stock-info .stock-title { font-size: 11px; color: #8b949e; margin-bottom: 2px; }
+        .in-stock-badge { background: #1f6feb22; border: 1px solid #1f6feb; color: #58a6ff; font-size: 9px; padding: 3px 6px; border-radius: 6px; font-weight: bold; height: fit-content; }
+
+        .stock-input { width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; color: #fff; font-size: 12px; margin-bottom: 10px; outline: none; }
+        .stock-input:focus { border-color: #58a6ff; }
+
+        /* Stock Action Buttons */
+        .stock-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-add { background: #238636; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; }
+        .btn-add:hover { background: #2ea043; }
+        .btn-reduce { background: #da3633; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; }
+        .btn-reduce:hover { background: #f85149; }
+
+        /* Search Engine */
+        .search-box { width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px; color: #fff; font-size: 12px; outline: none; margin-top: 8px; }
+
+        /* Customer Orders Management Table */
+        .order-table-header { display: grid; grid-template-columns: 1.2fr 1.2fr 1.5fr 1fr 1fr; font-size: 11px; color: #8b949e; padding-bottom: 8px; border-bottom: 1px solid #30363d; margin-bottom: 8px; font-weight: bold; }
+        .order-row { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1.2fr 1.2fr 1.5fr 1fr 1fr; align-items: center; font-size: 11px; gap: 4px; }
+        .order-details-col { display: flex; flex-direction: column; gap: 2px; }
+        .order-id-main { font-weight: bold; color: #fff; }
+        .order-sub-text { color: #8b949e; font-size: 10px; }
+        .user-id-col { color: #8b949e; }
+        .user-name { color: #fff; }
+        .utr-text { color: #58a6ff; font-family: monospace; font-size: 10px; }
+        .status-delivered { color: #3fb950; font-weight: bold; }
+        .action-select { background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 10px; outline: none; }
+
+        /* Gorgeous Custom Popup Modal Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(3px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; width: 310px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); animation: modalScale 0.2s ease-in-out; }
+        @keyframes modalScale { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-icon { font-size: 28px; margin-bottom: 8px; }
+        .modal-title { font-size: 15px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .modal-message { font-size: 12px; color: #8b949e; margin-bottom: 16px; line-height: 1.4; }
+        .modal-btn { background: #238636; color: #fff; border: none; padding: 8px 24px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; width: 100%; }
+        .modal-btn:hover { background: #2ea043; }
+
+        /* WhatsApp Float */
+        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; background: #25d366; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-decoration: none; z-index: 100; }
+    </style>
+</head>
+<body>
+
+<!-- Gorgeous Custom Modal Popup -->
+<div id="customModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-icon" id="modalIcon">💎</div>
+        <div class="modal-title" id="modalTitle">APG Notice</div>
+        <div class="modal-message" id="modalMessage">Message text here</div>
+        <button class="modal-btn" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<div class="dashboard-container">
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="nav-title">
+            <span class="logo">🛜</span> Client Admin Dashboard 
+            <span class="badge-full">FULL ACCESS</span>
+        </div>
+        <button class="logout-btn" onclick="triggerLogout()">Logout</button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">🕒 Pending Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">3</div>
+            <div class="stat-label">✔️ Delivered Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">📅 Today's Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">₹0</div>
+            <div class="stat-label">₹ Today's Revenue</div>
+        </div>
+    </div>
+
+    <!-- Diamond Stock Inventory Section -->
+    <div class="section-box">
+        <div class="section-header">📦 Diamond Stock (Inventory)</div>
+        
+        <div class="stock-display">
+            <div class="stock-info">
+                <div class="stock-title">Available Stock:</div>
+                <div class="stock-num" id="stockCount">28,60,00,01,00,00,90,010</div>
+                <div style="font-size: 10px; color: #3fb950; margin-top: 2px;">Diamonds</div>
+            </div>
+            <div class="in-stock-badge" id="stockBadge">IN STOCK</div>
+        </div>
+
+        <input type="text" id="stockInput" class="stock-input" placeholder="Enter quantity to add or reduce">
+
+        <div class="stock-actions">
+            <button class="btn-add" onclick="modifyStock('add')">+ Add Stock</button>
+            <button class="btn-reduce" onclick="modifyStock('reduce')">- Reduce Stock</button>
+        </div>
+    </div>
+    <!-- Universal Order Search Engine -->
+    <div class="section-box">
+        <div class="section-header">🔍 Universal Order Search Engine</div>
+        <input type="text" class="search-box" placeholder="Search by Name, User ID, Order ID, Ref ID or UTR...">
+    </div>
+
+    <!-- Customer Orders Management (3 rows to match '3 Delivered Orders') -->
+    <div class="section-box">
+        <div class="section-header">📋 Customer Orders Management</div>
+        
+        <div class="order-table-header">
+            <span>Order Details</span>
+            <span>User & ID</span>
+            <span>Payment / UTR</span>
+            <span>Status</span>
+            <span>Action</span>
+        </div>
+
+        <div>
+            <!-- Order 1 -->
+            <div class="order-row">
+                <div class="order-details-col">
+                    <span class="order-id-main">ORD9821</span>
+                    <span class="order-sub-text">100 Diamonds (₹285)</span>
+                </div>
+                <div class="user-id-col">
+                    <span class="user-name">Rahul Kumar</span><br>
+                    <span class="order-sub-text">ID: 99882211</span>
+                </div>
+                <div class="utr-text">UTR458921034</div>
+                <div class="status-delivered">Delivered</div>
+                <div>
+                    <select class="action-select">
+                        <option>Delivered</option>
+                        <option>Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Order 2 -->
+            <div class="order-row">
+                <div class="order-details-col">
+                    <span class="order-id-main">ORD9822</span>
+                    <span class="order-sub-text">500 Diamonds</span>
+                </div>
+                <div class="user-id-col">
+                    <span class="user-name">Amit Sharma</span><br>
+                    <span class="order-sub-text">ID: 99882212</span>
+                </div>
+                <div class="utr-text">REF789451230</div>
+                <div class="status-delivered">Delivered</div>
+                <div>
+                    <select class="action-select">
+                        <option>Delivered</option>
+                        <option>Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Order 3 (Matched with 3 Delivered Orders count) -->
+            <div class="order-row">
+                <div class="order-details-col">
+                    <span class="order-id-main">ORD9823</span>
+                    <span class="order-sub-text">250 Diamonds</span>
+                </div>
+                <div class="user-id-col">
+                    <span class="user-name">Faiz Khan</span><br>
+                    <span class="order-sub-text">ID: 99882213</span>
+                </div>
+                <div class="utr-text">UTR998811223</div>
+                <div class="status-delivered">Delivered</div>
+                <div>
+                    <select class="action-select">
+                        <option>Delivered</option>
+                        <option>Pending</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="https://whatsapp.com" target="_blank" class="whatsapp-float">💬</a>
+
+<script>
+    // Load stock from localStorage or keep original default, preventing unexpected resets on action
+    let currentStockValue = localStorage.getItem('apg_custom_stock') !== null 
+        ? BigInt(localStorage.getItem('apg_custom_stock')) 
+        : 28600001000090010n;
+
+    // Initialize display on load
+    window.onload = function() {
+        updateStockUI(false);
+    };
+
+    function showModal(message, title = "APG Notification", icon = "💎") {
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalIcon').textContent = icon;
+        document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('customModal').style.display = 'none';
+    }
+
+    function triggerLogout() {
+        showModal("You have been successfully logged out of Client Admin Dashboard.", "Logout Secure", "🔒");
+    }
+
+    function formatNumberWithCommas(numStr) {
+        let str = numStr.toString();
+        if (str === "0") return "0";
+        let lastThree = str.substring(str.length - 3);
+        let otherNumbers = str.substring(0, str.length - 3);
+        if (otherNumbers != '') {
+            lastThree = ',' + lastThree;
+        }
+        return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+    }
+
+    function updateStockUI(save = true) {
+        const stockDisplayElem = document.getElementById('stockCount');
+        const stockBadgeElem = document.getElementById('stockBadge');
+
+        stockDisplayElem.textContent = formatNumberWithCommas(currentStockValue);
+
+        if (currentStockValue === 0n) {
+            stockBadgeElem.textContent = "OUT OF STOCK";
+            stockBadgeElem.style.color = "#f85149";
+            stockBadgeElem.style.borderColor = "#f85149";
+            stockBadgeElem.style.background = "#f8514922";
+        } else {
+            stockBadgeElem.textContent = "IN STOCK";
+            stockBadgeElem.style.color = "#58a6ff";
+            stockBadgeElem.style.borderColor = "#1f6feb";
+            stockBadgeElem.style.background = "#1f6feb22";
+        }
+
+        if (save) {
+            localStorage.setItem('apg_custom_stock', currentStockValue.toString());
+        }
+    }
+
+    function modifyStock(action) {
+        const inputElem = document.getElementById('stockInput');
+        const val = inputElem.value.trim().replace(/,/g, '');
+
+        if (val === "" || isNaN(val) || Number(val) < 0) {
+            showModal("कृपया सही मात्रा (Quantity) दर्ज करें!", "Invalid Input", "⚠️");
+            return;
+        }
+
+        let qty = BigInt(val);
+
+        if (action === 'add') {
+            currentStockValue += qty;
+            showModal(`Successfully added ${val} diamonds to inventory!`, "Stock Updated", "✅");
+        } else if (action === 'reduce') {
+            if (qty > currentStockValue) {
+                showModal("उपलब्ध स्टॉक से ज़्यादा नहीं घटा सकते (स्टॉक शून्य से नीचे नहीं जा सकता)!", "Limit Exceeded", "⚠️");
+                return;
+            }
+            currentStockValue -= qty;
+            showModal(`Successfully reduced ${val} diamonds from inventory!`, "Stock Updated", "✅");
+        }
+
+        updateStockUI(true);
+        inputElem.value = '';
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khan Store - IMO Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #8b5cf6; --bg-color: #0f172a; --card-bg: #1e293b; --text-color: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; padding-bottom: 50px; }
+        
+        .header { background: #1e293b; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; text-align: center; }
+        .store-title-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; color: #a78bfa; font-size: 1rem; }
+
+        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin-bottom: 15px; border: 1px solid #334155; }
+        .form-group { margin-bottom: 12px; position: relative; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.82rem; color: #94a3b8; }
+        .form-group input { width: 100%; padding: 11px 36px 11px 11px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box; outline: none; }
+        .form-group input:focus { border-color: var(--primary-color); }
+        .input-verify-icon { position: absolute; right: 12px; top: 34px; color: #10b981; font-size: 1rem; display: none; }
+        
+        .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .pkg-box { background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .pkg-box:hover, .pkg-box.active { border-color: var(--primary-color); background: rgba(139, 92, 246, 0.15); box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+        .pkg-diamonds { font-weight: bold; font-size: 0.9rem; color: #fff; margin-bottom: 3px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .pkg-price { font-size: 0.82rem; color: #a78bfa; font-weight: 600; }
+        
+        .quantity-section { background: rgba(15, 23, 42, 0.6); border: 1px solid #475569; border-radius: 10px; padding: 10px 12px; margin-top: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .quantity-label { font-size: 0.85rem; color: #cbd5e1; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .quantity-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-btn { background: #334155; color: #fff; border: 1px solid #475569; width: 32px; height: 32px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .qty-btn:hover { background: var(--primary-color); border-color: var(--primary-color); }
+        .qty-input { width: 45px; height: 32px; background: #0f172a; border: 1px solid #475569; color: #fff; text-align: center; font-weight: bold; font-size: 0.95rem; border-radius: 6px; outline: none; }
+
+        .action-btn { background: var(--primary-color); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-top: 12px; }
+        .action-btn:hover { background: #7c3aed; }
+        
+        .checkout-container { border: 2px solid #10b981; border-radius: 12px; background: var(--card-bg); padding: 15px; margin-top: 15px; display: none; }
+        .checkout-title { color: #34d399; font-weight: bold; font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .checkout-info { font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
+        .checkout-info b { color: #f59e0b; }
+
+        .upi-grid-6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+        .upi-app-btn { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 6px; text-align: center; color: #1e293b; text-decoration: none; font-size: 0.72rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 62px; box-sizing: border-box; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        .upi-app-btn:hover { transform: translateY(-2px); border-color: #8b5cf6; }
+        .upi-app-btn img { width: 100%; max-height: 38px; object-fit: contain; display: block; }
+
+        .toggle-qr-btn { background: #38bdf8; color: #0f172a; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        
+        .qr-box { background: linear-gradient(145deg, #1e293b, #0f172a); padding: 15px; border-radius: 14px; text-align: center; margin-bottom: 0; border: 2px solid #f59e0b; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25); display: none; position: relative; }
+        .qr-timer-badge { position: absolute; top: 10px; right: 12px; background: rgba(15, 23, 42, 0.85); border: 1px solid #f87171; padding: 3px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; z-index: 10; }
+        .timer-text { color: #f87171; font-family: monospace; font-size: 0.85rem; font-weight: bold; }
+        
+        .qr-frame { background: #ffffff; padding: 10px; border-radius: 10px; display: inline-block; border: 2px solid #cbd5e1; margin-top: 10px; }
+        .qr-box img { width: 150px; height: 150px; display: block; margin: 0 auto; }
+        .qr-caption { font-size: 0.78rem; color: #e2e8f0; font-weight: 600; margin-top: 10px; display: flex; justify-content: center; align-items: center; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 8px; }
+        
+        #customAlertModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .custom-alert-box { background: #1e293b; border: 1px solid #475569; border-radius: 16px; padding: 22px; width: 100%; max-width: 300px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6); animation: popupScale 0.25s ease-in-out; }
+        @keyframes popupScale { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .custom-alert-icon { font-size: 2.2rem; color: #f59e0b; margin-bottom: 12px; }
+        .custom-alert-title { font-size: 1.05rem; font-weight: bold; color: #f8fafc; margin-bottom: 8px; }
+        .custom-alert-msg { font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px; line-height: 1.4; }
+        .custom-alert-btn { background: #8b5cf6; color: #fff; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+        .custom-alert-btn:hover { background: #7c3aed; }
+
+        #verifyModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
+        .verify-card { background: #1e293b; border: 2px solid #3b82f6; border-radius: 16px; padding: 25px; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+        .spinner { width: 60px; height: 60px; border: 6px solid #334155; border-top: 6px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .clock-icon { font-size: 1.5rem; color: #f59e0b; margin-bottom: 10px; }
+        .progress-bar-bg { width: 100%; background: #0f172a; height: 10px; border-radius: 5px; overflow: hidden; margin: 15px 0 10px 0; border: 1px solid #475569; }
+        .progress-bar-fill { width: 0%; height: 100%; background: #10b981; transition: width 0.3s ease; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="store-title-wrapper">
+        <i class="fa-solid fa-gem" style="color:#8b5cf6;"></i> 
+        <span>Khan Store - IMO Portal</span>
+    </div>
+</div>
+
+<div class="card" id="packageCard">
+    <div class="form-group">
+        <label><i class="fa-solid fa-user"></i> Enter IMO Player ID / Profile ID:</label>
+        <input type="text" id="playerIdInput" placeholder="Enter ID here..." oninput="checkPlayerId(this)">
+        <i class="fa-solid fa-circle-check input-verify-icon" id="idValidCheck" title="ID Verified"></i>
+    </div>
+
+    <div style="font-weight:bold; margin-bottom:8px; font-size:0.95rem; display:flex; align-items:center; gap:6px; margin-top: 15px;">
+        <i class="fa-solid fa-box-open" style="color:#8b5cf6;"></i> Select IMO Diamond Package
+    </div>
+
+    <div class="package-grid" id="packageGrid">
+        <div class="pkg-box active" onclick="selectPackage(10, 30.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 10</div><div class="pkg-price">₹30.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(50, 90.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 50</div><div class="pkg-price">₹90.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(100, 176.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 100</div><div class="pkg-price">₹176.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(200, 352.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 200</div><div class="pkg-price">₹352.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(300, 528.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 300</div><div class="pkg-price">₹528.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(500, 880.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 500</div><div class="pkg-price">₹880.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(600, 1056.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 600</div><div class="pkg-price">₹1056.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(1000, 1760.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 1000</div><div class="pkg-price">₹1760.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(2000, 3520.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 2000</div><div class="pkg-price">₹3520.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(3000, 5280.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 3000</div><div class="pkg-price">₹5280.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(5000, 8800.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 5000</div><div class="pkg-price">₹8800.00</div></div>
+        <div class="pkg-box" onclick="selectPackage(10000, 17550.00, this)"><div class="pkg-diamonds"><i class="fa-solid fa-gem" style="font-size:0.7rem; color:#8b5cf6;"></i> 10000</div><div class="pkg-price">₹17550.00</div></div>
+    </div>
+
+    <div class="quantity-section">
+        <div class="quantity-label"><i class="fa-solid fa-layer-group" style="color: #a78bfa;"></i> Quantity / Sets:</div>
+        <div class="quantity-controls">
+            <button class="qty-btn" onclick="updateQuantity(-1)"><i class="fa-solid fa-minus"></i></button>
+            <input type="number" id="qtyInput" class="qty-input" value="1" min="1" max="99" onchange="validateQuantity(this)">
+            <button class="qty-btn" onclick="updateQuantity(1)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+    </div>
+
+    <button class="action-btn" onclick="proceedToCheckout()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Proceed to Payment
+    </button>
+</div>
+
+<div class="checkout-container" id="checkoutSection">
+    <div class="checkout-title"><i class="fa-solid fa-shield-halved"></i> Secure Checkout & Payment</div>
+    <div class="checkout-info" id="checkoutSummaryText">IMO ID: <b>123456</b><br>Package: <b>10 Diamonds</b> | Qty: <b>1</b> | Total: <b>₹30.00</b></div>
+    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">Pay Directly via UPI App:</div>
+
+    <div class="upi-grid-6">
+        <div onclick="triggerAutoVerify('Paytm')" class="upi-app-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg" alt="Paytm"></div>
+        <div onclick="triggerAutoVerify('Google Pay')" class="upi-app-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay"></div>
+        <div onclick="triggerAutoVerify('PhonePe')" class="upi-app-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe"></div>
+        <div onclick="triggerAutoVerify('BHIM UPI')" class="upi-app-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="BHIM UPI"></div>
+        <div onclick="triggerAutoVerify('Amazon Pay')" class="upi-app-btn"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon Pay" style="max-height:22px;"></div>
+        <div onclick="triggerAutoVerify('Navi UPI')" class="upi-app-btn"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 50'><text x='10' y='36' font-size='30' font-weight='bold' fill='%23000000' font-family='Arial,sans-serif'>navi</text><polygon points='115,12 130,2 130,22' fill='%23FF3B30'/><text x='10' y='48' font-size='14' font-weight='bold' fill='%23555555' font-family='Arial,sans-serif'>UPI</text></svg>" alt="Navi UPI"></div>
+    </div>
+
+    <button class="toggle-qr-btn" id="toggleQrBtn" onclick="toggleQrCode()"><i class="fa-solid fa-qrcode"></i> Show QR Code</button>
+    
+    <div class="qr-box" id="qrBoxContainer">
+        <div class="qr-timer-badge">
+            <i class="fa-regular fa-clock" style="font-size:0.75rem; color:#f87171;"></i>
+            <span class="timer-text" id="qrTimer">05:00</span>
+        </div>
+        <div class="qr-frame"><img id="qrCodeImg" src="" alt="UPI QR Code"></div>
+        <div class="qr-caption">
+            <span><i class="fa-solid fa-camera" style="color:#38bdf8;"></i> Scan QR code using another phone</span>
+        </div>
+    </div>
+</div>
+
+<div id="customAlertModal">
+    <div class="custom-alert-box">
+        <div class="custom-alert-icon"><i class="fa-solid fa-circle-exclamation" id="customAlertIcon"></i></div>
+        <div class="custom-alert-title" id="customAlertTitle">Alert</div>
+        <div class="custom-alert-msg" id="customAlertMsg">Message goes here...</div>
+        <button class="custom-alert-btn" onclick="closeCustomAlert()">OK</button>
+    </div>
+</div>
+
+<div id="verifyModal">
+    <div class="verify-card">
+        <div class="spinner"></div>
+        <div class="clock-icon"><i class="fa-solid fa-clock-rotate-left"></i> <span id="timerClock">00:00</span></div>
+        <h3 style="color:#38bdf8; margin: 5px 0 10px 0; font-size: 1.1rem;">Verifying Payment</h3>
+        <p style="font-size: 0.8rem; color:#94a3b8; margin:0;" id="verifyStatusText">Opening app & awaiting payment reference...</p>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+        <div style="font-size:0.85rem; font-weight:bold; color:#f59e0b;" id="progressCount">Progress: 1%</div>
+    </div>
+</div>
+<script>
+let basePrice = 30.00;
+let baseDiamonds = 10;
+let qrTimerInterval = null;
+let timeLeft = 300;
+let alertCallback = null;
+
+function showCustomAlert(title, message, iconClass = 'fa-circle-exclamation', callback = null) {
+    document.getElementById('customAlertTitle').textContent = title;
+    document.getElementById('customAlertMsg').innerHTML = message;
+    document.getElementById('customAlertIcon').className = 'fa-solid ' + iconClass;
+    document.getElementById('customAlertModal').style.display = 'flex';
+    alertCallback = callback;
+}
+
+function closeCustomAlert() {
+    document.getElementById('customAlertModal').style.display = 'none';
+    if(typeof alertCallback === 'function') {
+        alertCallback();
+        alertCallback = null;
+    }
+}
+
+function checkPlayerId(input) {
+    let checkIcon = document.getElementById('idValidCheck');
+    if(input.value.trim().length >= 1) {
+        checkIcon.style.display = 'block';
+    } else {
+        checkIcon.style.display = 'none';
+    }
+}
+
+function selectPackage(diamonds, price, element) {
+    let boxes = document.querySelectorAll('.pkg-box');
+    boxes.forEach(b => b.classList.remove('active'));
+    element.classList.add('active');
+    baseDiamonds = diamonds;
+    basePrice = price;
+}
+
+function updateQuantity(change) {
+    let qtyInput = document.getElementById('qtyInput');
+    let currentQty = parseInt(qtyInput.value) || 1;
+    currentQty += change;
+    if(currentQty < 1) currentQty = 1;
+    if(currentQty > 99) currentQty = 99;
+    qtyInput.value = currentQty;
+}
+
+function validateQuantity(input) {
+    let val = parseInt(input.value);
+    if(isNaN(val) || val < 1) input.value = 1;
+    if(val > 99) input.value = 99;
+}
+
+function getFinalValues() {
+    let qty = parseInt(document.getElementById('qtyInput').value) || 1;
+    return {
+        diamonds: baseDiamonds * qty,
+        price: basePrice * qty,
+        quantity: qty
+    };
+}
+
+function proceedToCheckout() {
+    let pid = document.getElementById('playerIdInput').value.trim();
+    if(!pid) {
+        showCustomAlert('Required Field', 'Please enter your IMO Player ID / Profile ID first!', 'fa-triangle-exclamation', () => {
+            document.getElementById('playerIdInput').focus();
+        });
+        return;
+    }
+
+    let vals = getFinalValues();
+
+    document.getElementById('packageCard').style.display = 'none';
+    document.getElementById('checkoutSection').style.display = 'block';
+    document.getElementById('checkoutSummaryText').innerHTML = `IMO ID: <b>${pid}</b><br>Package: <b>${vals.diamonds} Diamonds</b> | Qty: <b>${vals.quantity}</b> | Total: <b>₹${vals.price.toFixed(2)}</b>`;
+
+    document.getElementById('qrBoxContainer').style.display = 'none';
+    document.getElementById('toggleQrBtn').innerHTML = '<i class="fa-solid fa-qrcode"></i> Show QR Code';
+    clearInterval(qrTimerInterval);
+
+    let upiId = localStorage.getItem('apg_master_upi') || 'merchant786khan@naviaxis';
+    let upiLink = `upi://pay?pa=${upiId}&pn=Khan%20Store&am=${vals.price}&cu=INR`;
+    let qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+    document.getElementById('qrCodeImg').src = qrApi;
+}
+
+function toggleQrCode() {
+    let qrBox = document.getElementById('qrBoxContainer');
+    let btn = document.getElementById('toggleQrBtn');
+    
+    if(qrBox.style.display === 'none') {
+        qrBox.style.display = 'block';
+        btn.innerHTML = '<i class="fa-solid fa-qrcode"></i> Hide QR Code';
+        timeLeft = 300;
+        startQrTimer();
+    } else {
+        qrBox.style.display = 'none';
+        btn.innerHTML = '<i class="fa-solid fa-qrcode"></i> Show QR Code';
+        clearInterval(qrTimerInterval);
+    }
+}
+
+function startQrTimer() {
+    clearInterval(qrTimerInterval);
+    qrTimerInterval = setInterval(() => {
+        let mins = Math.floor(timeLeft / 60);
+        let secs = timeLeft % 60;
+        document.getElementById('qrTimer').textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        
+        if(timeLeft <= 0) {
+            clearInterval(qrTimerInterval);
+            document.getElementById('qrBoxContainer').style.display = 'none';
+            document.getElementById('toggleQrBtn').innerHTML = '<i class="fa-solid fa-qrcode"></i> Show QR Code (Expired)';
+            showCustomAlert('Time Expired', 'QR Code expired after 5 minutes.', 'fa-clock');
+        }
+        timeLeft--;
+    }, 1000);
+}
+
+function triggerAutoVerify(appName) {
+    let pid = document.getElementById('playerIdInput').value.trim();
+    if(!pid) {
+        showCustomAlert('Required Field', 'Please enter your IMO Player ID / Profile ID first!', 'fa-triangle-exclamation', () => {
+            document.getElementById('playerIdInput').focus();
+        });
+        return;
+    }
+
+    let vals = getFinalValues();
+    let upiId = localStorage.getItem('apg_master_upi') || 'merchant786khan@naviaxis';
+    let upiLink = `upi://pay?pa=${upiId}&pn=Khan%20Store&am=${vals.price}&cu=INR`;
+    window.location.href = upiLink;
+
+    let modal = document.getElementById('verifyModal');
+    modal.style.display = 'flex';
+
+    let progress = 1;
+    let fill = document.getElementById('progressBarFill');
+    let countText = document.getElementById('progressCount');
+    let statusText = document.getElementById('verifyStatusText');
+    let clockText = document.getElementById('timerClock');
+
+    statusText.innerHTML = `Connecting with <b>${appName}</b> & awaiting UTR...`;
+
+    let secondsElapsed = 0;
+    let verifyInterval = setInterval(() => {
+        secondsElapsed++;
+        let m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+        let s = (secondsElapsed % 60).toString().padStart(2, '0');
+        clockText.textContent = `${m}:${s}`;
+
+        progress += Math.floor(Math.random() * 4) + 2;
+        if(progress >= 100) {
+            progress = 100;
+            clearInterval(verifyInterval);
+            fill.style.width = '100%';
+            countText.textContent = `Progress: 100% - Verified!`;
+            statusText.innerHTML = `<b style="color:#10b981;">Payment Reference Auto-Detected! Order Successful.</b>`;
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                showCustomAlert('Order Successful', `Success! Order for <b>${vals.diamonds} Diamonds</b> (Qty: ${vals.quantity}) placed for ID: <b>${pid}</b>.`, 'fa-circle-check', () => {
+                    cancelCheckout();
+                });
+            }, 1200);
+        } else {
+            fill.style.width = progress + '%';
+            countText.textContent = `Progress: ${progress}% (Auto-detecting...)`;
+        }
+    }, 100);
+}
+
+function cancelCheckout() {
+    clearInterval(qrTimerInterval);
+    document.getElementById('checkoutSection').style.display = 'none';
+    document.getElementById('packageCard').style.display = 'block';
+}
+</script>
+</body>
+</html>
